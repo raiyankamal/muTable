@@ -1,24 +1,34 @@
 /* Declaring namespace for muTable */
 var muTable = muTable = muTable || {} ;
 
+muTable.XMLHTTP_STATUS_OK = 200 ;
+
+muTable.callback = {} ;
 
 /* populates a new muTable
- * @data_source : source of the data, an url returning JSON array
- * @data_dest : the HTML element where the data should be presented in
- * @filter : only these colums are shown
- * @opt : options, array 
+ * 
+ * data_source : source of the data, an url returning JSON array
+ * data_dest : the HTML element where the data should be presented in
+ * filter : only these colums are shown
+ * opt : options, array 
+ * callback : array of callback functions
  */
-muTable.getNewMuTable = function (data_source, data_dest, filter, opt) {
+muTable.getNewMuTable = function (data_source, data_dest, filter, opt, callback) {
 
 	//alert(data_source);
 
 	var t=new XMLHttpRequest();
-	t.onreadystatechange=function()
+	t.onreadystatechange=function ()
 	{
 		if(t.readyState==4 )
 		{
-			table = JSON.parse(t.responseText);
-			muTable.putData(table, data_dest, filter, opt);
+			if(t.status==muTable.XMLHTTP_STATUS_OK) {
+				table = JSON.parse(t.responseText);
+				muTable.putData(table, data_dest, filter, opt);
+				muTable.callback = callback ;
+			} else {
+				table = "error loading data for table" ;
+			}
 		}
 	}
 	t.open("GET", data_source, true) ;
@@ -27,7 +37,7 @@ muTable.getNewMuTable = function (data_source, data_dest, filter, opt) {
 
 /* creates the HTML table element
  */
-muTable.putData = function(data, data_dest, filter, opt) {
+muTable.putData = function (data, data_dest, filter, opt) {
 
 	var table = $("<table class='mutable'>") ;
 
@@ -97,9 +107,7 @@ muTable.putData = function(data, data_dest, filter, opt) {
 		table.append(new_row) ;
 	}
 
-
 	data_dest.append(table);
-
 }
 
 /*
@@ -134,7 +142,7 @@ muTable.editClicked = function (event) {
 
 	edit.hide();
 	var accept = $("<a class=\"hovlink summaryEidtAccept\" >&#10003</a>");
-	accept.click(muTable.EidtAccept);
+	accept.click(muTable.editAccept);
 	toolbox.append(accept);
 
 	var cancel = $("<a class=\"hovlink summaryEidtCancel\" >&#10005</a>") ;
@@ -152,8 +160,11 @@ muTable.editClicked = function (event) {
 /*
  * event handler on the edit-accept button of a row for click event
  */
-muTable.editAccept = function(event) {
+muTable.editAccept = function (event) {
 	event.stopPropagation();
+	if(muTable.callback!=null && muTable.callback['onEditAccept']!=null) {
+		muTable.callback['onEditAccept']("xyz") ;
+	}
 
 	//TODO : send the data collected from text boxes to DB
 
@@ -183,6 +194,6 @@ muTable.editCancel = function (event) {
 /*
  * event handler on the delete button of a row for click event
  */
-muTable.delete = function(event) {
+muTable.delete = function (event) {
 	event.stopPropagation();
 }
