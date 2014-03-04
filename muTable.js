@@ -29,57 +29,67 @@ muTable.getNewMuTable = function (data_source, data_dest, filter, opt) {
  */
 muTable.putData = function(data, data_dest, filter, opt) {
 
-	var table = $("<table class=\"mutable\">") ;
+	var table = $("<table class='mutable'>") ;
 
 	var ll = filter.length ;
 
-	var text = "<tr>" ;
-	/*
-	if(opt['select']==true)
-		text += "<th class=\"toolbox\">&nbsp;</th>" ;*/
+	//var text = "<tr>" ;
+	var header_row = $("<tr></tr>");
 
-	if(opt['edit']==true)
-		text += "<th class=\"toolbox\">&nbsp;</th>" ;
+	if(opt['edit']==true) {
+		var new_th = $( "<th class='toolbox'>&nbsp;</th>" ) ;
+		header_row.append(new_th);
+	}
 	
 	for(var j=0; j<ll; j++) {
-		text += "<th>" + filter[j] + "</th>" ;
+		var new_th = $("<th>" + filter[j] + "</th>") ;
+		header_row.append(new_th);
 	}
 
-	if(opt['delete']==true)
-		text += "<th class=\"toolbox\">&nbsp;</th>" ;
+	if(opt['delete']==true) {
+		var new_th = $("<th class='toolbox'>&nbsp;</th>") ;
+		header_row.append(new_th);
+	}
 
-	text += "</tr>" ;
-	var header_row = $(text) ;
+	//text += "</tr>" ;
+	//var header_row = $(text) ;
 	table.append(header_row) ;
 
 	var l = data.length ;
 	for(var i=0; i<l ; i++) {
-		var text = "<tr id=\"row_"+i+"\" >" ;
+		var new_row = $("<tr id='row_"+i+"' ></tr>") ;
 
-		var tool_text = "" ;
+		var edit_col = $("<td class='toolbox edit'></td>") ;
 
 		//whether the rows are editable
 		if(opt['edit']==true) {
-			tool_text += "<td class=\"edit\"><a>&#9998;</a></td>" ;
+			var edit_btn = $("<a>&#9998;</a>") ;
+			edit_btn.click(muTable.editClicked) ;
+			edit_col.append(edit_btn);
 		}
 
-		tool_text += "</td>" ;
-		text += tool_text ;
+		new_row.append(edit_col);
 
 		for(var j=0; j<ll; j++) {
 			if(data[i].hasOwnProperty(filter[j])) {
-				text += "<td>" + data[i][filter[j]] + "</td>" ;
+				var new_col = $("<td>" + data[i][filter[j]] + "</td>" ) ;
+				new_row.append(new_col);
 			}
 		}
 
-		//whether the rows are deletable
-		if(opt['delete']==true)
-			text += "<td class=\"delete\"><a>&#10006;</a></td>" ;
+		var delete_col = $("<td class='toolbox delete'></td>") ;
 
-		text += "</tr>" ;
+		//whether the rows are deletable
+		if(opt['delete']==true) {
+			var delete_btn = $("<a>&#10006;</a>") ;
+			delete_btn.click(muTable.delete);
+			delete_col.append(delete_btn);
+		}
+
+		new_row.append(delete_col);
 
 		//create jQuery object
-		var new_row = $(text) ;
+		//var new_row = $(text) ;
 		new_row.click(muTable.rowToggle) ;
 
 		table.append(new_row) ;
@@ -87,6 +97,7 @@ muTable.putData = function(data, data_dest, filter, opt) {
 
 
 	data_dest.append(table);
+
 }
 
 /*
@@ -102,7 +113,7 @@ muTable.rowToggle = function () {
 }
 
 /*
- * get and editable row
+ * get an editable row
  * @input : optional, an array containing the values to be filled in text boxes
  */
 muTable.getEditableRow = function (input) {
@@ -112,8 +123,8 @@ muTable.getEditableRow = function (input) {
 /*
  * event handler on the edit button of a row for click event
  */
-muTable.editClicked = function () {
-
+muTable.editClicked = function (event) {
+	event.stopPropagation();
 }
 
 /*
@@ -133,6 +144,6 @@ muTable.editCancel = function () {
 /*
  * event handler on the delete button of a row for click event
  */
-muTable.delete = function() {
-
+muTable.delete = function(event) {
+	event.stopPropagation();
 }
