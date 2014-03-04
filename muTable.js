@@ -41,6 +41,7 @@ muTable.putData = function (data, data_dest, filter, opt) {
 
 	var table = $("<table class='mutable'>") ;
 
+	muTable.filter = filter ;
 	var ll = filter.length ;
 
 	//var text = "<tr>" ;
@@ -134,7 +135,7 @@ muTable.getEditableRow = function (input) {
  * event handler on the edit button of a row for click event
  */
 muTable.editClicked = function (event) {
-	event.stopPropagation();
+	event.stopPropagation();						// stop propagation of the click event
 
 	var edit = $(this);
 	var toolbox = edit.parent() ;
@@ -149,7 +150,7 @@ muTable.editClicked = function (event) {
 	cancel.click(muTable.editCancel);
 	toolbox.append(cancel);
 
-	row.find("td:not(.toolbox)").each( function(){
+	row.find("td:not(.toolbox)").each( function (){
 		var textelem = $(this).children().first() ;
 		textelem.hide();
 		var tbox = $("<input type='text' placeholder='write new text here' value='"+textelem.text()+"' >");
@@ -161,9 +162,31 @@ muTable.editClicked = function (event) {
  * event handler on the edit-accept button of a row for click event
  */
 muTable.editAccept = function (event) {
-	event.stopPropagation();
+	event.stopPropagation();						// stop propagation of the click event
+
+	var accept = $(this);
+	var toolbox = accept.parent() ;
+	var row = toolbox.parent();
+
+	var data = {} ;											// associative array to hold the updated data
+	row.find("td:not(.toolbox)").each( function (i, e){		// loop through all the cells in this row except toolbox cells 
+		data[muTable.filter[i]] = $(e).text() ;				// put updated data in the array
+	} ) ;
+	//console.log(data);
 	if(muTable.callback!=null && muTable.callback['onEditAccept']!=null) {
-		muTable.callback['onEditAccept']("xyz") ;
+		var status = muTable.callback['onEditAccept'](data) ;
+		if(status==muTable.XMLHTTP_STATUS_OK) {						// callback retunred suscces
+			row.find("td:not(.toolbox)").each( function (i, e){		// remove text boxes and show updated data in cells				
+				var textelem = $(e).children().first() ;
+				textelem.text(textelem.next().val());
+				textelem.show();
+				textelem.next().remove();
+			} ) ;	
+
+			toolbox.find(":first-child").show();			// show the editbtn
+			toolbox.find(":not(:first-child)").remove();	// remove editaccept, editcancel
+
+		}
 	}
 
 	//TODO : send the data collected from text boxes to DB
@@ -181,8 +204,8 @@ muTable.editCancel = function (event) {
 	var toolbox = cancel.parent() ;
 	var row = toolbox.parent();
 
-	toolbox.find(":first-child").show();
-	toolbox.find(":not(:first-child)").remove();
+	toolbox.find(":first-child").show();			// show the editbtn
+	toolbox.find(":not(:first-child)").remove();	// remove editaccept, editcancel
 
 	row.find("td:not(.toolbox)").each( function(){
 		var textelem = $(this).children().first() ;
