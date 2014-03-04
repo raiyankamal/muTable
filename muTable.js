@@ -154,6 +154,10 @@ muTable.editClicked = function (event) {
  */
 muTable.editAccept = function(event) {
 	event.stopPropagation();
+
+	//TODO : send the data collected from text boxes to DB
+
+	//TODO : resotore the UI
 }
 
 /*
