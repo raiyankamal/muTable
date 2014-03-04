@@ -70,9 +70,10 @@ muTable.putData = function(data, data_dest, filter, opt) {
 
 		new_row.append(edit_col);
 
+		//loop through entries in data[i] to populate columns
 		for(var j=0; j<ll; j++) {
 			if(data[i].hasOwnProperty(filter[j])) {
-				var new_col = $("<td>" + data[i][filter[j]] + "</td>" ) ;
+				var new_col = $("<td><span>" + data[i][filter[j]] + "</span></td>" ) ;
 				new_row.append(new_col);
 			}
 		}
@@ -90,7 +91,8 @@ muTable.putData = function(data, data_dest, filter, opt) {
 
 		//create jQuery object
 		//var new_row = $(text) ;
-		new_row.click(muTable.rowToggle) ;
+		if(opt['select']==true)
+			new_row.click(muTable.rowToggle) ;
 
 		table.append(new_row) ;
 	}
@@ -125,21 +127,54 @@ muTable.getEditableRow = function (input) {
  */
 muTable.editClicked = function (event) {
 	event.stopPropagation();
+
+	var edit = $(this);
+	var toolbox = edit.parent() ;
+	var row = toolbox.parent();
+
+	edit.hide();
+	var accept = $("<a class=\"hovlink summaryEidtAccept\" >&#10003</a>");
+	accept.click(muTable.EidtAccept);
+	toolbox.append(accept);
+
+	var cancel = $("<a class=\"hovlink summaryEidtCancel\" >&#10005</a>") ;
+	cancel.click(muTable.editCancel);
+	toolbox.append(cancel);
+
+	row.find("td:not(.toolbox)").each( function(){
+		var textelem = $(this).children().first() ;
+		textelem.hide();
+		var tbox = $("<input type='text' placeholder='write new text here' value='"+textelem.text()+"' >");
+		$(this).append(tbox);
+	} ) ;
 }
 
 /*
  * event handler on the edit-accept button of a row for click event
  */
-muTable.editAccept = function() {
-
+muTable.editAccept = function(event) {
+	event.stopPropagation();
 }
 
 /*
  * event handler on the edit-cancel button of a row for click event
  */
-muTable.editCancel = function () {
+muTable.editCancel = function (event) {
+	event.stopPropagation();
 
- }
+	var cancel = $(this);
+	var toolbox = cancel.parent() ;
+	var row = toolbox.parent();
+
+	toolbox.find(":first-child").show();
+	toolbox.find(":not(:first-child)").remove();
+
+	row.find("td:not(.toolbox)").each( function(){
+		var textelem = $(this).children().first() ;
+		textelem.show();
+		textelem.next().remove();
+	} ) ;
+}
 
 /*
  * event handler on the delete button of a row for click event
