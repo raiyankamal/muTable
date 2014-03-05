@@ -44,7 +44,6 @@ muTable.putData = function (data, data_dest, filter, opt) {
 	muTable.filter = filter ;
 	var ll = filter.length ;
 
-	//var text = "<tr>" ;
 	var header_row = $("<tr></tr>");
 
 	if(opt['edit']==true) {
@@ -62,8 +61,6 @@ muTable.putData = function (data, data_dest, filter, opt) {
 		header_row.append(new_th);
 	}
 
-	//text += "</tr>" ;
-	//var header_row = $(text) ;
 	table.append(header_row) ;
 
 	var l = data.length ;
