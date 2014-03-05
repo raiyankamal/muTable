@@ -211,10 +211,21 @@ muTable.editCancel = function (event) {
  * event handler on the delete button of a row for click event
  */
 muTable.delete = function (event) {
-	event.stopPropagation();
+	event.stopPropagation();						// stop propagation of the click event
 
-	//TODO : invoke callback function to remove the row from DB
+	var del = $(this);
+	var toolbox = del.parent() ;
+	var row = toolbox.parent();
 
-	//TODO : remove the row from view
+	var data = {} ;											// associative array to hold the updated data
+	row.find("td:not(.toolbox)").each( function (i, e){		// loop through all the cells in this row except toolbox cells 
+		data[muTable.filter[i]] = $(e).text() ;				// put updated data in the array
+	} ) ;
 
+	if(muTable.callback!=null && muTable.callback['onDelete']!=null) {	// is a callback function specified ?
+		var status = muTable.callback['onDelete'](data) ;		// invoking callback function
+		if(status==muTable.XMLHTTP_STATUS_OK) {					// callback retunred suscces
+			row.remove();									//remove the row
+		}
+	}
 }
