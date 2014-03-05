@@ -215,4 +215,9 @@ muTable.editCancel = function (event) {
  */
 muTable.delete = function (event) {
 	event.stopPropagation();
+
+	//TODO : invoke callback function to remove the row from DB
+
+	//TODO : remove the row from view
+
 }
