@@ -172,9 +172,9 @@ muTable.editAccept = function (event) {
 	row.find("td:not(.toolbox)").each( function (i, e){		// loop through all the cells in this row except toolbox cells 
 		data[muTable.filter[i]] = $(e).text() ;				// put updated data in the array
 	} ) ;
-	//console.log(data);
-	if(muTable.callback!=null && muTable.callback['onEditAccept']!=null) {
-		var status = muTable.callback['onEditAccept'](data) ;
+
+	if(muTable.callback!=null && muTable.callback['onEditAccept']!=null) {	// is a callback function specified ?
+		var status = muTable.callback['onEditAccept'](data) ;		// invoking callback function
 		if(status==muTable.XMLHTTP_STATUS_OK) {						// callback retunred suscces
 			row.find("td:not(.toolbox)").each( function (i, e){		// remove text boxes and show updated data in cells				
 				var textelem = $(e).children().first() ;
@@ -188,10 +188,6 @@ muTable.editAccept = function (event) {
 
 		}
 	}
-
-	//TODO : send the data collected from text boxes to DB
-
-	//TODO : resotore the UI
 }
 
 /*
