@@ -122,7 +122,7 @@ muTable.rowToggle = function () {
 
 /*
  * get an editable row
- * @input : optional, an array containing the values to be filled in text boxes
+ * input : optional, an array containing the values to be filled in text boxes
  */
 muTable.getEditableRow = function (input) {
 
@@ -165,10 +165,7 @@ muTable.editAccept = function (event) {
 	var toolbox = accept.parent() ;
 	var row = toolbox.parent();
 
-	var data = {} ;											// associative array to hold the updated data
-	row.find("td:not(.toolbox)").each( function (i, e){		// loop through all the cells in this row except toolbox cells 
-		data[muTable.filter[i]] = $(e).text() ;				// put updated data in the array
-	} ) ;
+	var data = muTable.getRowData(row, "td:not(.toolbox) input", true) ;
 
 	if(muTable.callback!=null && muTable.callback['onEditAccept']!=null) {	// is a callback function specified ?
 		var status = muTable.callback['onEditAccept'](data) ;		// invoking callback function
@@ -217,10 +214,7 @@ muTable.delete = function (event) {
 	var toolbox = del.parent() ;
 	var row = toolbox.parent();
 
-	var data = {} ;											// associative array to hold the updated data
-	row.find("td:not(.toolbox)").each( function (i, e){		// loop through all the cells in this row except toolbox cells 
-		data[muTable.filter[i]] = $(e).text() ;				// put updated data in the array
-	} ) ;
+	var data = muTable.getRowData(row, "td:not(.toolbox) span", false) ;
 
 	if(muTable.callback!=null && muTable.callback['onDelete']!=null) {	// is a callback function specified ?
 		var status = muTable.callback['onDelete'](data) ;		// invoking callback function
@@ -228,4 +222,28 @@ muTable.delete = function (event) {
 			row.remove();									//remove the row
 		}
 	}
+}
+
+
+//TODO : Dirty code bellow, finish this
+
+/*
+ * Get the data of a row
+ * 
+ * row : jquery object, the row to be deleted
+ * selector : css selector to find the elements holding the data
+ * getter : getter function for data of a cell
+ */
+muTable.getRowData = function (row, selector, inputfield) {
+	var data = {} ;											// associative array to hold the updated data
+	row.find( selector ).each( function (i, e){		// loop through all the cells in this row except toolbox cells
+		if(inputfield==true)
+			data[muTable.filter[i]] = $(e).val() ;				// get updated data from input field
+		else
+			data[muTable.filter[i]] = $(e).text() ;				// get up updated data from element
+	} ) ;
+
+	alert(data['fname']);
+
+	return data ;
 }
