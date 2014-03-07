@@ -45,9 +45,16 @@ muTable.putData = function (data, data_dest, filter, opt) {
 	var ll = filter.length ;
 
 	var header_row = $("<tr></tr>");
+	if(opt['add']==true || opt['edit']==true) {
+		var new_th = $( "<th class='toolbox'></th>" ) ;
 
-	if(opt['edit']==true) {
-		var new_th = $( "<th class='toolbox'>&nbsp;</th>" ) ;
+		if(opt['add']==true) {
+			new_th.addClass("add");
+			var add_btn = $("<a>&#10010;</a>") ;
+			add_btn.click(muTable.addClicked);
+			new_th.append(add_btn);
+		}
+
 		header_row.append(new_th);
 	}
 	
@@ -118,6 +125,15 @@ muTable.rowToggle = function () {
 	} else {
 		$(row).addClass("selected-row");
 	}
+}
+
+/*
+ * event handler on a selectable row for click event, adds a new row to the table
+ */
+muTable.addClicked = function () {
+	var table = $(this).parent().parent();
+	var row = $("<tr><tr>") ;
+	alert("added");
 }
 
 /*
@@ -224,15 +240,12 @@ muTable.delete = function (event) {
 	}
 }
 
-
-//TODO : Dirty code bellow, finish this
-
 /*
  * Get the data of a row
  * 
  * row : jquery object, the row to be deleted
  * selector : css selector to find the elements holding the data
- * getter : getter function for data of a cell
+ * inputfield : boolean, indicated whether the data should be taken from input fields using .val() function
  */
 muTable.getRowData = function (row, selector, inputfield) {
 	var data = {} ;											// associative array to hold the updated data
