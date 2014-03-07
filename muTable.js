@@ -39,9 +39,11 @@ muTable.getNewMuTable = function (data_source, data_dest, filter, opt, callback)
  */
 muTable.putData = function (data, data_dest, filter, opt) {
 
+	muTable.filter = filter ;
+	muTable.opt = opt ;
+
 	var table = $("<table class='mutable'>") ;
 
-	muTable.filter = filter ;
 	var ll = filter.length ;
 
 	var header_row = $("<tr></tr>");
@@ -131,10 +133,91 @@ muTable.rowToggle = function () {
  * event handler on a selectable row for click event, adds a new row to the table
  */
 muTable.addClicked = function () {
-	var table = $(this).parent().parent();
-	var row = $("<tr><tr>") ;
-	alert("added");
+	var table = $(this).parent().parent().parent();
+	var new_row = $("<tr></tr>") ;
+
+	var toolbox = $("<td class='toolbox edit'></td>") ;
+
+	var edit = $("<a class=\"hovlink addAccept\" >&#9998</a>");
+	edit.click(muTable.editClicked);
+	toolbox.append(edit);
+	edit.hide();
+
+	var accept = $("<a class=\"hovlink addAccept\" >&#10003</a>");
+	accept.click(muTable.addAccept);
+	toolbox.append(accept);
+
+	var cancel = $("<a class=\"hovlink addCancel\" >&#10005</a>") ;
+	cancel.click(muTable.addCancel);
+	toolbox.append(cancel);
+
+	new_row.append(toolbox);
+
+	var ll = muTable.filter.length ;
+
+	//loop through filter array to populate columns in the newly added row
+	for(var j=0; j<ll; j++) {
+		var new_col = $("<td></td>" ) ;
+		var new_data = $("<span></span>") ;
+		new_data.hide();
+		var new_input = $("<input type='text' value='' />") ;
+		new_col.append(new_data) ;
+		new_col.append(new_input) ;
+		new_row.append(new_col);
+	}
+
+	var delete_col = $("<td class='toolbox delete'></td>") ;
+	if(muTable.opt['delete']==true) {
+		var delete_btn = $("<a>&#10006;</a>") ;
+		delete_btn.click(muTable.delete);
+		delete_col.append(delete_btn);
+		new_row.append(delete_col);
+	}
+
+	table.append(new_row);
 }
+
+/*
+ * event handler on the add-accept button of a row for click event
+ */
+muTable.addAccept = function (event) {
+	event.stopPropagation();						// stop propagation of the click event
+
+	var accept = $(this);
+	var toolbox = accept.parent() ;
+	var row = toolbox.parent();
+
+	var data = muTable.getRowData(row, "td:not(.toolbox) input", true) ;
+
+	if(muTable.callback!=null && muTable.callback['onAddAccept']!=null) {	// is a callback function specified ?
+		var status = muTable.callback['onAddAccept'](data) ;		// invoking callback function
+		if(status==muTable.XMLHTTP_STATUS_OK) {						// callback retunred suscces
+			row.find("td:not(.toolbox)").each( function (i, e){		// remove text boxes and show updated data in cells				
+				var textelem = $(e).children().first() ;
+				textelem.text(textelem.next().val());
+				textelem.show();
+				textelem.next().remove();
+			} ) ;	
+
+			toolbox.find(":first-child").show();			// show the editbtn
+			toolbox.find(":not(:first-child)").remove();	// remove add_accepth and add_cancel
+		}
+	}
+}
+
+/*
+ * event handler on the add-cancel button of a row for click event
+ */
+muTable.addCancel = function (event) {
+	event.stopPropagation();
+
+	var cancel = $(this);
+	var toolbox = cancel.parent() ;
+	var row = toolbox.parent();
+
+	row.remove();
+}
+
 
 /*
  * get an editable row
@@ -155,11 +238,12 @@ muTable.editClicked = function (event) {
 	var row = toolbox.parent();
 
 	edit.hide();
-	var accept = $("<a class=\"hovlink summaryEidtAccept\" >&#10003</a>");
+
+	var accept = $("<a class=\"hovlink eidtAccept\" >&#10003</a>");
 	accept.click(muTable.editAccept);
 	toolbox.append(accept);
 
-	var cancel = $("<a class=\"hovlink summaryEidtCancel\" >&#10005</a>") ;
+	var cancel = $("<a class=\"hovlink eidtCancel\" >&#10005</a>") ;
 	cancel.click(muTable.editCancel);
 	toolbox.append(cancel);
 
@@ -256,7 +340,7 @@ muTable.getRowData = function (row, selector, inputfield) {
 			data[muTable.filter[i]] = $(e).text() ;				// get up updated data from element
 	} ) ;
 
-	alert(data['fname']);
+	//alert(data['fname']);
 
 	return data ;
 }
