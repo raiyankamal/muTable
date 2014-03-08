@@ -4,9 +4,13 @@ muTable
 A javascript library for interactive table UI
 
 
+Dependency
+==========
+jQuery
+
+
 How to Use
 ==========
-0. The dependency, include jQuery
 1. Include the muTable.js in your page source
 ```
 <script src="muTable/muTable.js"></script>
@@ -15,12 +19,10 @@ Optinal: you can also include the muTable stylesheet, or customize it
 ```
 <link rel=StyleSheet href="muTable/style.css" type="text/css">
 ```
-
 2. Create a div in your HTML for showing the table
 ```
 <div class="mutable" id="table_div"></div>
 ```
-
 3. Write appropriate JavaScript code to fetch and display data as a table
 ```
 <script type="text/javascript">
