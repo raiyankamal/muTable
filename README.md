@@ -51,7 +51,7 @@ $( document ).ready(function() {
 	} ;
 
 	// the url for fetching data from the DB
-	var data_source = "<?php echo $main->baseUrl; ?>/site/mutable_data.php" ;
+	var data_source = "mutable_data.php" ;
 
 	// the HTML DOM element where the table should be shown
 	var data_destination = $("#table_div") ;
