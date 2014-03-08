@@ -11,7 +11,7 @@ jQuery
 
 How to Use
 ==========
-1. Include the muTable.js in your page source
+Include the muTable.js in your page source
 ```
 <script src="muTable/muTable.js"></script>
 ```
@@ -19,14 +19,14 @@ Optinal: you can also include the muTable stylesheet, or customize it
 ```
 <link rel=StyleSheet href="muTable/style.css" type="text/css">
 ```
-2. Create a div in your HTML for showing the table
+
+Create a div in your HTML for showing the table
 ```
 <div class="mutable" id="table_div"></div>
 ```
-3. Write appropriate JavaScript code to fetch and display data as a table
-```
-<script type="text/javascript">
 
+Write appropriate JavaScript code to fetch and display data as a table
+```javascript
 $( document ).ready(function() {
 
 	var filter = ["fname", "lname", "phone", "mobile", "fax", "email", "address"] ;	// the column to be shown, in given order
@@ -56,6 +56,4 @@ $( document ).ready(function() {
 	//populate the table
 	muTable.getNewMuTable(data_source, data_destination, filter, options, callback) ;
 });
-
-</script>
 ```
