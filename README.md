@@ -35,14 +35,17 @@ $( document ).ready(function() {
 	// callback functions for different events
 	var callback = {
 		'onAddAccept' : function (data) {
+			//TODO : the two lines bellow are dummy code, put your own stuffs here
 			console.log(data);
 			return muTable.XMLHTTP_STATUS_OK ;
 		},
 		'onEditAccept' : function (data) {
+			//TODO : the two lines bellow are dummy code, put your own stuffs here
 			console.log(data);
 			return muTable.XMLHTTP_STATUS_OK ;
 		},
 		'onDelete' : function(data) {
+			//TODO : the line bellow is dummy code, put your own stuffs here
 			return muTable.XMLHTTP_STATUS_OK ;
 		}
 	} ;
