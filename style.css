@@ -1,0 +1,105 @@
+table.mutable {
+    %background-color: #fff;
+}
+
+table.mutable tr {
+    %background: #eee;
+}
+
+table.mutable tr:not(:first-child):hover {
+    background-color: #eee;
+}
+
+table.mutable tr:not(:first-child):hover td:select {
+    color: #fff;
+}
+
+table.mutable th {
+    border-bottom: 1px solid #bbb;
+}
+
+table.mutable .toolbox {
+	border-bottom: none ;
+	text-align: right;
+}
+
+table.mutable td {
+    %border-bottom: 1px solid #ddd;
+    padding:2px;
+}
+
+table.mutable td.select {
+	color: #eee;
+	padding-left: 6px;
+	min-width: 8px;
+	min-height: 8px;
+	cursor: pointer ;
+}
+
+table.mutable .add {
+	color: #888;
+	background: #fff;
+	padding-left: 6px;
+	min-width: 8px;
+	min-height: 8px;
+	cursor: pointer ;
+}
+
+table.mutable .add a {
+	padding: 2px;
+}
+
+table.mutable .add a:hover {
+	color: #fff;
+	background: #181;
+}
+
+table.mutable .edit {
+	color: #888;
+	background: #fff;
+	padding-left: 6px;
+	min-width: 8px;
+	min-height: 8px;
+	cursor: pointer ;
+}
+
+table.mutable .edit a {
+	padding: 2px;
+}
+
+table.mutable .edit a:hover {
+	color: #fff;
+	background: #888;
+}
+
+table.mutable .delete {
+	color: #888;
+	background: #fff;
+	padding-left: 6px;
+	min-width: 8px;
+	min-height: 8px;
+	cursor: pointer ;
+}
+
+table.mutable .delete a {
+	padding: 2px;
+}
+
+table.mutable .delete a:hover {
+	color: #fff;
+	background: #a22;
+}
+
+table.mutable tr.selected-row {
+	background: #bbb;
+}
+
+table.mutable tr.selected-row:not(:first-child):hover td.select {
+    color: #888;
+}
+
+table.mutable input {
+	border: 1px solid #eee;
+	border-bottom: 1px solid #aaa;
+	margin: 0px;
+}
