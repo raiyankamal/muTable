@@ -24,7 +24,7 @@ muTable.getNewMuTable = function (data_source, data_dest, filter, opt, callback)
 		{
 			if(t.status==muTable.XMLHTTP_STATUS_OK) {
 				table = JSON.parse(t.responseText);
-				muTable.putData(table, data_dest, filter, opt);
+				muTable.build_table(table, data_dest, filter, opt);
 				muTable.callback = callback ;
 			} else {
 				table = "error loading data for table" ;
@@ -37,19 +37,23 @@ muTable.getNewMuTable = function (data_source, data_dest, filter, opt, callback)
 
 /* creates the HTML table element
  */
-muTable.putData = function (data, data_dest, filter, opt) {
+muTable.build_table = function (data, data_dest, filter, opt) {
 
 	muTable.filter = filter ;
-	var num_col = filter.length ;
 	muTable.opt = opt ;
+	muTable.data = data ;
+	var num_col = filter.length ;
 
 	var table = $("<table class='mutable'>") ;
+	muTable.table = table ;
 
 	var ll = filter.length ;
 
-	if( muTable.opt['title']!=undefined ) {										//title of table is set
-		var title_row = $("<h1>" + muTable.opt['title'] + "</h1>");					//the title element
-		$(data_dest).append(title_row) ;
+	var thead = $("<thead></thead>");								// header of the table
+
+	if( muTable.opt['title']!=undefined ) {							//title of table is set
+		var title_row = $("<tr><td colspan=" + num_col + "><h1>" + muTable.opt['title'] + "</h1></td></tr>");					//the title element
+		$(thead).append(title_row) ;
 	}
 
 	var header_row = $("<tr></tr>");
@@ -65,6 +69,7 @@ muTable.putData = function (data, data_dest, filter, opt) {
 
 		header_row.append(new_th);
 	}
+
 	
 	for(var j=0; j<ll; j++) {
 		var new_th = $("<th>" + filter[j] + "</th>") ;
@@ -72,14 +77,59 @@ muTable.putData = function (data, data_dest, filter, opt) {
 	}
 
 	if(opt['delete']==true) {
-		var new_th = $("<th class='toolbox'>&nbsp;</th>") ;
+		var new_th = $("<th class='toolbox'></th>") ;
 		header_row.append(new_th);
 	}
 
-	table.append(header_row) ;
+	thead.append(header_row) ;
+
+	table.append(thead) ;											// add header to table
+
+	var tbody = $("<tbody></tbody>") ;
 
 	var l = data.length ;
-	for(var i=0; i<l ; i++) {
+	var start_index = 0 ;
+	var end_index = l ;
+
+	if(opt['pagelen']!=undefined) {
+		if(opt['currentpage']==undefined || muTable.opt['currentpage']*muTable.opt['pagelen'] > l)
+			opt['currentpage'] = 0 ;
+		start_index = muTable.opt['currentpage'] * muTable.opt['pagelen'] ;
+		end_index = start_index + muTable.opt['pagelen'] ;
+		end_index = ( end_index >= l ) ? l : end_index ;
+	}
+
+	console.log("pagination : "+start_index+" "+end_index);
+
+	muTable.populate(data, start_index, end_index, filter, opt, tbody) ;
+
+	table.append(tbody);
+
+	var tfoot = $("<tfoot></tfoot>");			// footer of the table
+
+
+	/* pagination */
+	muTable.paginate(tfoot) ;
+	table.append(tfoot);
+
+	data_dest.append(table);
+}
+
+/*
+ * populate table with data between given indices
+ *
+ * data : rows in JSON array
+ * start_index : start from here
+ * end_index : end before this index
+ * filter : array containing the title of columns to be shown, in the given order
+ * opt : muTable options
+ * tbody : tbody of the target table
+ */
+muTable.populate = function (data, start_index, end_index, filter, opt, tbody) {
+
+	var ll = filter.length ;
+
+	for(var i=start_index; i<end_index ; i++) {
 		var new_row = $("<tr id='row_"+i+"' ></tr>") ;
 
 		var edit_col = $("<td class='toolbox edit'></td>") ;
@@ -112,16 +162,73 @@ muTable.putData = function (data, data_dest, filter, opt) {
 
 		new_row.append(delete_col);
 
-		//create jQuery object
-		//var new_row = $(text) ;
 		if(opt['select']==true)
 			new_row.click(muTable.rowToggle) ;
 
-		table.append(new_row) ;
-	}
-
-	data_dest.append(table);
+		tbody.append(new_row) ;
+	}	
 }
+
+
+/*
+ * navigates to the next/prev page
+ * next : if true then moves to the next page, otherwise moves to the previous page
+ */
+ muTable.navigate = function () {
+
+	muTable.opt['currentpage'] += ($(this).hasClass('next'))? 1 : -1 ;
+
+ 	var start_index = muTable.opt['currentpage'] * muTable.opt['pagelen'] ;
+ 	var end_index = start_index + muTable.opt['pagelen'] ;
+ 	var l = muTable.data.length ;
+
+	end_index = ( end_index >= l ) ? l : end_index ;
+
+	muTable.table.find("tbody").empty();
+
+	console.log(start_index);
+	console.log(end_index);
+	muTable.populate(muTable.data, start_index, end_index, muTable.filter, muTable.opt, muTable.table.find("tbody")) ;
+	muTable.paginate(muTable.table.find("tfoot"));
+}
+
+
+/*
+ * creates the pagination links
+ *
+ * tfoot : footer of the table where the new pagination should be shown
+ */
+muTable.paginate = function (tfoot) {
+	if(muTable.opt['pagelen']!=undefined) {		//pagination is defined
+		
+		var prev = "" ;
+		var next = "" ;
+		var l = muTable.data.length ;
+		var num_col = muTable.filter.length ;
+
+		if(muTable.opt['currentpage']>0) {
+			prev = $("<a class='prev'>&lt;</a>") ;
+			prev.click(muTable.navigate);
+		}
+
+		if( (muTable.opt['currentpage']+1) * muTable.opt['pagelen'] < l) {
+			next = $("<a class='next'>&gt;</a>") ;
+			next.click(muTable.navigate);
+		}
+		
+		var page = $("<span>"+(muTable.opt['currentpage']+1)+"</span>");
+
+		var pagination_row = $("<tr class='pagination' ></tr>") ;
+		var colspan = num_col + ( (muTable.opt['edit']||muTable.opt['add']) ? 1 : 0 ) + ( (muTable.opt['delete']) ? 1 : 0  );
+		var pagination_col = $("<td class='toolbox' colspan=" + colspan + "></td>") ;
+		pagination_col.append(prev).append(page).append(next) ;
+		pagination_row.append(pagination_col) ;
+		
+		tfoot.empty();
+		tfoot.append(pagination_row) ;				// pagination is appended to table footer
+	}
+}
+
 
 /*
  * event handler on a selectable row for click event
