@@ -40,11 +40,17 @@ muTable.getNewMuTable = function (data_source, data_dest, filter, opt, callback)
 muTable.putData = function (data, data_dest, filter, opt) {
 
 	muTable.filter = filter ;
+	var num_col = filter.length ;
 	muTable.opt = opt ;
 
 	var table = $("<table class='mutable'>") ;
 
 	var ll = filter.length ;
+
+	if( muTable.opt['title']!=undefined ) {										//title of table is set
+		var title_row = $("<h1>" + muTable.opt['title'] + "</h1>");					//the title element
+		$(data_dest).append(title_row) ;
+	}
 
 	var header_row = $("<tr></tr>");
 	if(opt['add']==true || opt['edit']==true) {
@@ -344,3 +350,5 @@ muTable.getRowData = function (row, selector, inputfield) {
 
 	return data ;
 }
+
+//jQuery.noConflict();
