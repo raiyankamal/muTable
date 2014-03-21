@@ -10,10 +10,11 @@ muTable.callback = {} ;
  * data_source : source of the data, an url returning JSON array
  * data_dest : the HTML element where the data should be presented in
  * filter : only these colums are shown
+ * label : name of the colums, if set then the column names in DB are replaced by the labels
  * opt : options, array 
  * callback : array of callback functions
  */
-muTable.getNewMuTable = function (data_source, data_dest, filter, opt, callback) {
+muTable.getNewMuTable = function (data_source, data_dest, filter, label, opt, callback) {
 
 	//alert(data_source);
 
@@ -24,7 +25,7 @@ muTable.getNewMuTable = function (data_source, data_dest, filter, opt, callback)
 		{
 			if(t.status==muTable.XMLHTTP_STATUS_OK) {
 				table = JSON.parse(t.responseText);
-				muTable.build_table(table, data_dest, filter, opt);
+				muTable.build_table(table, data_dest, filter, label, opt);
 				muTable.callback = callback ;
 			} else {
 				table = "error loading data for table" ;
@@ -37,9 +38,10 @@ muTable.getNewMuTable = function (data_source, data_dest, filter, opt, callback)
 
 /* creates the HTML table element
  */
-muTable.build_table = function (data, data_dest, filter, opt) {
+muTable.build_table = function (data, data_dest, filter, label, opt) {
 
 	muTable.filter = filter ;
+	muTable.label = label ;
 	muTable.opt = opt ;
 	muTable.data = data ;
 	var num_col = filter.length ;
@@ -51,28 +53,29 @@ muTable.build_table = function (data, data_dest, filter, opt) {
 
 	var thead = $("<thead></thead>");								// header of the table
 
-	if( muTable.opt['title']!=undefined ) {							//title of table is set
+	if( muTable.opt['title']!=undefined ) {							//if title of table is set
 		var title_row = $("<tr><td colspan=" + num_col + "><h1>" + muTable.opt['title'] + "</h1></td></tr>");					//the title element
-		$(thead).append(title_row) ;
+		$(thead).append(title_row) ;								//append the title
 	}
 
-	var header_row = $("<tr></tr>");
-	if(opt['add']==true || opt['edit']==true) {
-		var new_th = $( "<th class='toolbox'></th>" ) ;
+	var header_row = $("<tr></tr>");								// header row element for the table
+	if(opt['add']==true || opt['edit']==true) {						// if either of the add or edit options are enabled then we would need an extra column
+		var new_th = $( "<th class='toolbox'></th>" ) ;				// the td element for the extra column
 
-		if(opt['add']==true) {
+		if(opt['add']==true) {										// populate this column only if the add option is enabled
 			new_th.addClass("add");
 			var add_btn = $("<a>&#10010;</a>") ;
 			add_btn.click(muTable.addClicked);
 			new_th.append(add_btn);
 		}
 
-		header_row.append(new_th);
+		header_row.append(new_th);									// append the extra column to the header row
 	}
 
 	
-	for(var j=0; j<ll; j++) {
-		var new_th = $("<th>" + filter[j] + "</th>") ;
+	for(var j=0; j<ll; j++) {										// populate the header row with appropriate column names
+		var t = ( label[j]==undefined || label[j]=='' ) ? filter[j] : label[j] ;	// if label is set for a column then the column name from DB is replaced
+		var new_th = $("<th>" + t + "</th>") ;
 		header_row.append(new_th);
 	}
 
@@ -132,16 +135,19 @@ muTable.populate = function (data, start_index, end_index, filter, opt, tbody) {
 	for(var i=start_index; i<end_index ; i++) {
 		var new_row = $("<tr id='row_"+i+"' ></tr>") ;
 
-		var edit_col = $("<td class='toolbox edit'></td>") ;
+		if(opt['edit'] || opt['add']) {									// an extra column is needed if either of the add or edit options are enabled
 
-		//whether the rows are editable
-		if(opt['edit']==true) {
-			var edit_btn = $("<a>&#9998;</a>") ;
-			edit_btn.click(muTable.editClicked) ;
-			edit_col.append(edit_btn);
+			var edit_col = $("<td class='toolbox edit'></td>") ;
+
+			//whether the rows are editable
+			if(opt['edit']==true) {
+				var edit_btn = $("<a>&#9998;</a>") ;
+				edit_btn.click(muTable.editClicked) ;
+				edit_col.append(edit_btn);
+			}
+
+			new_row.append(edit_col);
 		}
-
-		new_row.append(edit_col);
 
 		//loop through entries in data[i] to populate columns
 		for(var j=0; j<ll; j++) {
@@ -155,7 +161,7 @@ muTable.populate = function (data, start_index, end_index, filter, opt, tbody) {
 
 		//whether the rows are deletable
 		if(opt['delete']==true) {
-			var delete_btn = $("<a>&#10006;</a>") ;
+			var delete_btn = $('<a >&#10006;</a>') ;
 			delete_btn.click(muTable.delete);
 			delete_col.append(delete_btn);
 		}
@@ -199,8 +205,8 @@ muTable.populate = function (data, start_index, end_index, filter, opt, tbody) {
  * tfoot : footer of the table where the new pagination should be shown
  */
 muTable.paginate = function (tfoot) {
-	if(muTable.opt['pagelen']!=undefined) {		//pagination is defined
-		
+	if(muTable.opt['pagelen']!=undefined) {		//if pagination is defined
+
 		var prev = "" ;
 		var next = "" ;
 		var l = muTable.data.length ;
@@ -429,12 +435,18 @@ muTable.delete = function (event) {
 
 	var data = muTable.getRowData(row, "td:not(.toolbox) span", false) ;
 
-	if(muTable.callback!=null && muTable.callback['onDelete']!=null) {	// is a callback function specified ?
-		var status = muTable.callback['onDelete'](data) ;		// invoking callback function
-		if(status==muTable.XMLHTTP_STATUS_OK) {					// callback retunred suscces
-			row.remove();									//remove the row
-		}
+	if(muTable.callback!=null && muTable.callback['onDelete']!=null) {	// is a callback function specified ?		
+		muTable.callback['onDelete'](data, row) ;
+	} else {
+		muTable.removeRow(row) ;
 	}
+}
+
+/*
+ * remove the deleted row from DOM
+ */
+muTable.removeRow = function(row) {
+	row.remove() ;
 }
 
 /*

@@ -1,6 +1,7 @@
 table.mutable {
     %background-color: #fff;
     color: #444;
+    width: 100%;
 }
 
 table.mutable thead td,
@@ -38,6 +39,7 @@ table.mutable .toolbox {
 	border: none ;
 }
 
+table.mutable thead .toolbox:first-child ,
 table.mutable tbody .toolbox:first-child {
 	text-align: right;
 }
@@ -90,7 +92,7 @@ table.mutable .pagination a {
 	cursor: pointer ;
 }
 
-table.mutable .edit a,
+table.mutable .edit a ,
 table.mutable .pagination a {
 	padding: 2px;
 	margin-left: 10px;
@@ -98,6 +100,11 @@ table.mutable .pagination a {
 
 table.mutable .pagination a {
 	margin-right: 10px;
+}
+
+table.mutable .edit a ,
+table.mutable .delete a {
+	color: #888;
 }
 
 table.mutable .edit a:hover,
