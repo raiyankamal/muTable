@@ -74,7 +74,7 @@ muTable.build_table = function (data, data_dest, filter, label, opt) {
 
 	
 	for(var j=0; j<ll; j++) {										// populate the header row with appropriate column names
-		var t = ( label[j]==undefined || label[j]=='' ) ? filter[j] : label[j] ;	// if label is set for a column then the column name from DB is replaced
+		var t = ( label[j]==undefined ) ? filter[j] : label[j] ;	// if label is set for a column then the column name from DB is replaced
 		var new_th = $("<th>" + t + "</th>") ;
 		header_row.append(new_th);
 	}
@@ -102,6 +102,7 @@ muTable.build_table = function (data, data_dest, filter, label, opt) {
 		end_index = ( end_index >= l ) ? l : end_index ;
 	}
 
+	console.log("currentpage : "+muTable.opt['currentpage']);
 	console.log("pagination : "+start_index+" "+end_index);
 
 	muTable.populate(data, start_index, end_index, filter, opt, tbody) ;
@@ -157,16 +158,16 @@ muTable.populate = function (data, start_index, end_index, filter, opt, tbody) {
 			}
 		}
 
-		var delete_col = $("<td class='toolbox delete'></td>") ;
 
 		//whether the rows are deletable
-		if(opt['delete']==true) {
+		if(undefined != opt['delete'] && true == opt['delete']) {
+			var delete_col = $("<td class='toolbox delete'></td>") ;
 			var delete_btn = $('<a >&#10006;</a>') ;
 			delete_btn.click(muTable.delete);
 			delete_col.append(delete_btn);
+			new_row.append(delete_col);
 		}
 
-		new_row.append(delete_col);
 
 		if(opt['select']==true)
 			new_row.click(muTable.rowToggle) ;
@@ -192,8 +193,6 @@ muTable.populate = function (data, start_index, end_index, filter, opt, tbody) {
 
 	muTable.table.find("tbody").empty();
 
-	console.log(start_index);
-	console.log(end_index);
 	muTable.populate(muTable.data, start_index, end_index, muTable.filter, muTable.opt, muTable.table.find("tbody")) ;
 	muTable.paginate(muTable.table.find("tfoot"));
 }
@@ -211,7 +210,7 @@ muTable.paginate = function (tfoot) {
 		var next = "" ;
 		var l = muTable.data.length ;
 		var num_col = muTable.filter.length ;
-
+console.log(muTable.opt['currentpage']);
 		if(muTable.opt['currentpage']>0) {
 			prev = $("<a class='prev'>&lt;</a>") ;
 			prev.click(muTable.navigate);
