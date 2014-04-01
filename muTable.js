@@ -16,24 +16,23 @@ muTable.callback = {} ;
  */
 muTable.getNewMuTable = function (data_source, data_dest, filter, label, opt, callback) {
 
-	//alert(data_source);
+	console.log(data_source) ;
 
-	var t=new XMLHttpRequest();
-	t.onreadystatechange=function ()
-	{
-		if(t.readyState==4 )
-		{
-			if(t.status==muTable.XMLHTTP_STATUS_OK) {
-				table = JSON.parse(t.responseText);
-				muTable.build_table(table, data_dest, filter, label, opt);
-				muTable.callback = callback ;
-			} else {
-				table = "error loading data for table" ;
-			}
-		}
-	}
-	t.open("GET", data_source, true) ;
-	t.send(null) ;
+	$.ajax({
+
+		url: data_source ,
+		type: "POST",
+		contentType: "application/json; charset=utf-8",
+
+	}).done(function(o) {
+
+		table = JSON.parse(o);
+		muTable.build_table(table, data_dest, filter, label, opt);
+		muTable.callback = callback ;
+
+	}).fail(function(o){
+		alert('could not load data for mutable');
+	});
 }
 
 /* creates the HTML table element
@@ -193,6 +192,8 @@ muTable.populate = function (data, start_index, end_index, filter, opt, tbody) {
 
 	muTable.table.find("tbody").empty();
 
+	console.log(start_index);
+	console.log(end_index);
 	muTable.populate(muTable.data, start_index, end_index, muTable.filter, muTable.opt, muTable.table.find("tbody")) ;
 	muTable.paginate(muTable.table.find("tfoot"));
 }
