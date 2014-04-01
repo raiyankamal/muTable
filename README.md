@@ -66,6 +66,6 @@ $( document ).ready(function() {
 	var data_destination = $('#table_div') ;
 
 	//populate the table
-	muTable.getNewMuTable(data_source, data_destination, filter, options, callback) ;
+	muTable.getNewMuTable(data_source, data_destination, filter, label, options, callback) ;
 });
 ```
