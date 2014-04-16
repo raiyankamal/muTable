@@ -309,18 +309,30 @@ muTable.addAccept = function (event) {
 	var data = muTable.getRowData(row, "td:not(.toolbox) input", true) ;
 
 	if(muTable.callback!=null && muTable.callback['onAddAccept']!=null) {	// is a callback function specified ?
-		var status = muTable.callback['onAddAccept'](data) ;		// invoking callback function
-		if(status==muTable.XMLHTTP_STATUS_OK) {						// callback retunred suscces
-			row.find("td:not(.toolbox)").each( function (i, e){		// remove text boxes and show updated data in cells				
-				var textelem = $(e).children().first() ;
-				textelem.text(textelem.next().val());
-				textelem.show();
-				textelem.next().remove();
-			} ) ;	
+		muTable.callback['onAddAccept'](data, row, muTable.addAcceptComplete ) ;				// invoking callback function
+	}
+}
 
-			toolbox.find(":first-child").show();			// show the editbtn
-			toolbox.find(":not(:first-child)").remove();	// remove add_accepth and add_cancel
-		}
+/*
+ * The default callback function to cleanup the UI upon completion of the addAccept transaction
+ */
+muTable.addAcceptComplete = function (row, suscces) {
+
+	if(suscces) {												// the transaction was successful
+		row.find("td:not(.toolbox)").each( function (i, e){		// remove text boxes and show updated data in cells	
+			var textelem = $(e).children().first() ;
+			textelem.text(textelem.next().val());
+			textelem.show();
+			textelem.next().remove();
+			textelem = undefined ;
+		} ) ;
+
+		var toolbox = row.find('td.toolbox') ;
+		toolbox.find(":first-child").show();			// show the editbtn
+		toolbox.find(":not(:first-child)").remove();	// remove add_accepth and add_cancel
+	}
+	else {
+		alert("Could not save, please try again or cancel.") ;
 	}
 }
 
