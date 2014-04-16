@@ -252,7 +252,7 @@ muTable.rowToggle = function () {
  * event handler on a selectable row for click event, adds a new row to the table
  */
 muTable.addClicked = function () {
-	var table = $(this).parent().parent().parent();
+	var table = $(this).parent().parent().parent().parent().find('tbody');
 	var new_row = $("<tr></tr>") ;
 
 	var toolbox = $("<td class='toolbox edit'></td>") ;
@@ -293,7 +293,7 @@ muTable.addClicked = function () {
 		new_row.append(delete_col);
 	}
 
-	table.append(new_row);
+	table.prepend(new_row);
 }
 
 /*
