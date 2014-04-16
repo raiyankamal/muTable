@@ -146,5 +146,6 @@ function deleteRow(data, row, callback) {
 FAQ
 ===
 
-Q. Does muTable take care of linking the view and model ?
+__Q. Does muTable take care of linking the view and model ?__
+
 A. No, muTable is just an UI. The responsibility of linking is left to the control.
