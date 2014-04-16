@@ -391,29 +391,36 @@ muTable.editClicked = function (event) {
  */
 muTable.editAccept = function (event) {
 	event.stopPropagation();						// stop propagation of the click event
-
-	var accept = $(this);
-	var toolbox = accept.parent() ;
-	var row = toolbox.parent();
-
+	var row = $(this).parent().parent() ;
 	var data = muTable.getRowData(row, "td:not(.toolbox) input", true) ;
 
 	if(muTable.callback!=null && muTable.callback['onEditAccept']!=null) {	// is a callback function specified ?
-		var status = muTable.callback['onEditAccept'](data) ;		// invoking callback function
-		if(status==muTable.XMLHTTP_STATUS_OK) {						// callback retunred suscces
-			row.find("td:not(.toolbox)").each( function (i, e){		// remove text boxes and show updated data in cells				
-				var textelem = $(e).children().first() ;
-				textelem.text(textelem.next().val());
-				textelem.show();
-				textelem.next().remove();
-			} ) ;	
-
-			toolbox.find(":first-child").show();			// show the editbtn
-			toolbox.find(":not(:first-child)").remove();	// remove editaccept, editcancel
-
-		}
+		muTable.callback['onEditAccept'](data, row, muTable.editAcceptComplete) ;
 	}
 }
+
+/*
+ * The default function to cleanup the UI after completion of the editAccept transaction
+ */
+muTable.editAcceptComplete = function (row, suscces) {
+	if(suscces) {												// the transaction was successful
+		row.find("td:not(.toolbox)").each( function (i, e){		// remove text boxes and show updated data in cells	
+			var textelem = $(e).children().first() ;
+			textelem.text(textelem.next().val());
+			textelem.show();
+			textelem.next().remove();
+			textelem = undefined ;
+		} ) ;
+
+		var toolbox = row.find('td.toolbox') ;
+		toolbox.find(":first-child").show();			// show the editbtn
+		toolbox.find(":not(:first-child)").remove();	// remove editaccept, editcancel
+	}
+	else {
+		alert("Could not save, please try again or cancel.") ;
+	}
+}
+
 
 /*
  * event handler on the edit-cancel button of a row for click event
@@ -448,11 +455,22 @@ muTable.delete = function (event) {
 	var data = muTable.getRowData(row, "td:not(.toolbox) span", false) ;
 
 	if(muTable.callback!=null && muTable.callback['onDelete']!=null) {	// is a callback function specified ?		
-		muTable.callback['onDelete'](data, row) ;
+		muTable.callback['onDelete'](data, row, muTable.deleteComplete) ;
 	} else {
 		muTable.removeRow(row) ;
 	}
 }
+
+
+muTable.deleteComplete = function (row, suscces) {
+	if(suscces) {												// the transaction was successful
+		muTable.removeRow(row) ;
+	}
+	else {
+		alert("Could not delete, please try again.") ;
+	}
+}
+
 
 /*
  * remove the deleted row from DOM
