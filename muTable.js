@@ -2,42 +2,42 @@
 var muTable = muTable = muTable || {} ;
 
 
+muTable.column = function (name, label) {
+	this.name = name ;
+	this.label = label ;
+}
+
+
 /* muTable constructor, creates a new muTable from the supplied data
  * 
  * data_source : source of the data, an url returning JSON array
  * data_dest : the HTML element where the data should be presented in
- * filter : only these colums are shown
- * label : name of the colums, if set then the column names in DB are replaced by the labels
+ * columns : only these colums are shown
  * opt : options, array 
  * callback : array of callback functions
  */
-muTable.muTable = function (data_source, data_dest, filter, label, opt, callback) {
+muTable.muTable = function (data_source, data_dest, columns, opt, callback) {
 	this.XMLHTTP_STATUS_OK = 200 ;
 
 	this.data_dest = data_dest ;
-	this.filter = filter ;
-	this.lable = label ;
 	this.opt = opt ;
 	this.callback = callback ;
 
-	muTable.getNewMuTable(this, data_source, data_dest, filter, label, opt, callback) ;
+	this.columns = columns ;
+
+	muTable.fetchDataForTable(this, data_source, data_dest, columns, opt, callback) ;
 }
-
-
-
-
 
 
 /* populates a new muTable
  * 
  * data_source : source of the data, an url returning JSON array
  * data_dest : the HTML element where the data should be presented in
- * filter : only these colums are shown
- * label : name of the colums, if set then the column names in DB are replaced by the labels
+ * column : only these colums are shown
  * opt : options, array 
  * callback : array of callback functions
  */
-muTable.getNewMuTable = function (mT, data_source, data_dest, filter, label, opt, callback) {
+muTable.fetchDataForTable = function (mT, data_source, data_dest, columns, opt, callback) {
 
 	console.log('fetching data for muTable instance from '+data_source) ;
 
@@ -48,7 +48,7 @@ muTable.getNewMuTable = function (mT, data_source, data_dest, filter, label, opt
 		contentType: "application/json; charset=utf-8",
 
 	}).done(function(o) {
-		mT.build_table(JSON.parse(o), data_dest, filter, label, opt);
+		mT.build_table(JSON.parse(o), data_dest, columns, opt);
 	}).fail(function(o){
 		alert('could not load data for mutable');
 	});
@@ -58,18 +58,16 @@ muTable.muTable.prototype = {
 
 	/* creates the HTML table element
 	 */
-	build_table : function (data, data_dest, filter, label, opt) {
+	build_table : function (data, data_dest, columns, opt) {
 
-		// muTable.filter = filter ;
-		// muTable.label = label ;
-		// muTable.opt = opt ;
+		this.opt = opt ;
 		this.data = data ;
-		var num_col = filter.length ;
+		var num_col = columns.length ;
 
 		var table = $("<table class='mutable'>") ;
 		this.table = table ;
 
-		var ll = filter.length ;
+		var ll = columns.length ;
 
 		var thead = $("<thead></thead>");								// header of the table
 
@@ -79,6 +77,7 @@ muTable.muTable.prototype = {
 		}
 
 		var header_row = $("<tr></tr>");								// header row element for the table
+
 		if(opt['add']==true || opt['edit']==true) {						// if either of the add or edit options are enabled then we would need an extra column
 			var new_th = $( "<th class='toolbox'></th>" ) ;				// the td element for the extra column
 
@@ -91,10 +90,9 @@ muTable.muTable.prototype = {
 
 			header_row.append(new_th);									// append the extra column to the header row
 		}
-
 		
 		for(var j=0; j<ll; j++) {										// populate the header row with appropriate column names
-			var t = ( label[j]==undefined ) ? filter[j] : label[j] ;	// if label is set for a column then the column name from DB is replaced
+			var t = ( columns[j].label==undefined ) ? columns[j].name : columns[j].label ;	// if label is set for a column then the column name from DB is replaced
 			var new_th = $("<th>" + t + "</th>") ;
 			header_row.append(new_th);
 		}
@@ -125,7 +123,7 @@ muTable.muTable.prototype = {
 		console.log("currentpage : "+this.opt['currentpage']);
 		console.log("pagination : "+start_index+" "+end_index);
 
-		this.populate(data, start_index, end_index, filter, opt, tbody) ;
+		this.populate(data, start_index, end_index, columns, opt, tbody) ;
 
 		table.append(tbody);
 
@@ -145,13 +143,13 @@ muTable.muTable.prototype = {
 	 * data : rows in JSON array
 	 * start_index : start from here
 	 * end_index : end before this index
-	 * filter : array containing the title of columns to be shown, in the given order
+	 * columns : array columns to be shown, in the given order
 	 * opt : muTable options
 	 * tbody : tbody of the target table
 	 */
-	populate : function (data, start_index, end_index, filter, opt, tbody) {
+	populate : function (data, start_index, end_index, columns, opt, tbody) {
 
-		var ll = filter.length ;
+		var ll = columns.length ;
 
 		for(var i=start_index; i<end_index ; i++) {
 			var new_row = $("<tr id='row_"+i+"' ></tr>") ;
@@ -172,8 +170,10 @@ muTable.muTable.prototype = {
 
 			//loop through entries in data[i] to populate columns
 			for(var j=0; j<ll; j++) {
-				if(data[i].hasOwnProperty(filter[j])) {
-					var new_col = $("<td><span>" + data[i][filter[j]] + "</span></td>" ) ;
+				if(data[i].hasOwnProperty(columns[j].name)) {
+					var new_col = $("<td><span>" + data[i][columns[j].name] + "</span></td>" ) ;
+					if(columns[j].readonly)
+						new_col.addClass('readonly') ;
 					new_row.append(new_col);
 				}
 			}
@@ -217,7 +217,7 @@ muTable.muTable.prototype = {
 
 		console.log(start_index);
 		console.log(end_index);
-		mT.populate(mT.data, start_index, end_index, mT.filter, mT.opt, mT.table.find("tbody")) ;
+		mT.populate(mT.data, start_index, end_index, mT.columns, mT.opt, mT.table.find("tbody")) ;
 		mT.paginate(mT.table.find("tfoot"));
 	} ,
 
@@ -233,7 +233,6 @@ muTable.muTable.prototype = {
 			var prev = "" ;
 			var next = "" ;
 			var l = this.data.length ;
-			var num_col = this.filter.length ;
 			console.log(this.opt['currentpage']);
 			if(this.opt['currentpage']>0) {
 				prev = $("<a class='prev'>&lt;</a>") ;
@@ -248,7 +247,7 @@ muTable.muTable.prototype = {
 			var page = $("<span>"+(this.opt['currentpage']+1)+"</span>");
 
 			var pagination_row = $("<tr class='pagination' ></tr>") ;
-			var colspan = num_col + ( (this.opt['edit']||this.opt['add']) ? 1 : 0 ) + ( (this.opt['delete']) ? 1 : 0  );
+			var colspan = this.columns.length + ( (this.opt['edit']||this.opt['add']) ? 1 : 0 ) + ( (this.opt['delete']) ? 1 : 0  );
 			var pagination_col = $("<td class='toolbox' colspan=" + colspan + "></td>") ;
 			pagination_col.append(prev).append(page).append(next) ;
 			pagination_row.append(pagination_col) ;
@@ -298,16 +297,20 @@ muTable.muTable.prototype = {
 
 		new_row.append(toolbox);
 
-		var ll = mT.filter.length ;
+		var ll = mT.columns.length ;
 
-		//loop through filter array to populate columns in the newly added row
+		//loop through the columns array to populate columns in the newly added row
 		for(var j=0; j<ll; j++) {
 			var new_col = $("<td></td>" ) ;
 			var new_data = $("<span></span>") ;
 			new_data.hide();
-			var new_input = $("<input type='text' value='' />") ;
+
+			if(!mT.columns[j].readonly) {
+				var new_input = $("<input type='text' value='' />") ;
+				new_col.append(new_input) ;
+			}
+
 			new_col.append(new_data) ;
-			new_col.append(new_input) ;
 			new_row.append(new_col);
 		}
 
@@ -334,7 +337,7 @@ muTable.muTable.prototype = {
 		var toolbox = accept.parent() ;
 		var row = toolbox.parent();
 
-		var data = mT.getRowData(row, "td:not(.toolbox) input", true) ;
+		var data = mT.getRowData(row, true) ;
 
 		if(mT.callback!=null && mT.callback['onAddAccept']!=null) {	// is a callback function specified ?
 			mT.callback['onAddAccept'](data, row, mT.addAcceptComplete ) ;				// invoking callback function
@@ -404,11 +407,15 @@ muTable.muTable.prototype = {
 		cancel.click({mT: mT,} , mT.editCancel);
 		toolbox.append(cancel);
 
-		row.find("td:not(.toolbox)").each( function (){
-			var textelem = $(this).children().first() ;
-			textelem.hide();
-			var tbox = $("<input type='text' placeholder='write new text here' value='"+textelem.text()+"' >");
-			$(this).append(tbox);
+		row.find("td:not(.toolbox)").each( function (i, e){
+
+			if(!mT.columns[i].readonly) {			
+				var textelem = $(this).children().first() ;
+				textelem.hide();
+				var tbox = $("<input type='text' placeholder='write new text here' value='"+textelem.text()+"' >");
+				$(this).append(tbox);
+			}
+
 		} ) ;
 	} ,
 
@@ -419,7 +426,7 @@ muTable.muTable.prototype = {
 		event.stopPropagation();						// stop propagation of the click event
 		var mT = event.data.mT ;
 		var row = $(this).parent().parent() ;
-		var data = mT.getRowData(row, "td:not(.toolbox) input", true) ;
+		var data = mT.getRowData(row, true) ;
 
 		if(mT.callback!=null && mT.callback['onEditAccept']!=null) {	// is a callback function specified ?
 			mT.callback['onEditAccept'](data, row, mT.editAcceptComplete) ;
@@ -481,7 +488,7 @@ muTable.muTable.prototype = {
 		var toolbox = del.parent() ;
 		var row = toolbox.parent();
 
-		var data = mT.getRowData(row, "td:not(.toolbox) span", false) ;
+		var data = mT.getRowData(row, false) ;
 
 		if(mT.callback!=null && mT.callback['onDelete']!=null) {	// is a callback function specified ?		
 			mT.callback['onDelete'](data, row, mT.deleteComplete) ;
@@ -508,18 +515,28 @@ muTable.muTable.prototype = {
 	 * selector : css selector to find the elements holding the data
 	 * inputfield : boolean, indicated whether the data should be taken from input fields using .val() function
 	 */
-	getRowData : function (row, selector, inputfield) {
+	getRowData : function (row, inputfield) {
 		var data = {} ;
 		var mT = this ;
-		row.find( selector ).each( function (i, e){		// loop through all the cells in this row except toolbox cells
-			if(inputfield==true)
-				data[mT.filter[i]] = $(e).val() ;				// get updated data from input field
-			else
-				data[mT.filter[i]] = $(e).text() ;				// get up updated data from element
+		//var c = row[0].getElementsByTagName('td') ;
+		row.find( "td:not(.toolbox)" ).each( function (i, e){		// loop through all the cells in this row except toolbox cells
+			//var j = [].indexOf.call(c, $(e).parent()[0] ) ;
+			//if(mT.opt['edit'] || mT.opt['add'])
+			//	j-- ;
+
+			if(mT.columns[i].readonly) {
+				data[mT.columns[i].name] = $(e).text() ;
+			}
+			else {
+				if(inputfield==true)
+					data[mT.columns[i].name] = $(e).find('input').val() ;				// get updated data from input field
+				else
+					data[mT.columns[i].name] = $(e).find('span').text() ;				// get up updated data from element
+			}
+
 		} ) ;
 
-		//alert(data['fname']);
-
+		console.log(data) ;
 		return data ;
 	} ,
 
