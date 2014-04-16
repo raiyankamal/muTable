@@ -30,6 +30,10 @@ table.mutable tbody td:select {
     color: #fff;
 }
 
+table.mutable tbody td.readonly {
+	color: #888;
+}
+
 table.mutable tbody tr.selected-row {
 	background: #ff8;
 }
