@@ -73,6 +73,12 @@ table.mutable .add {
 	cursor: pointer ;
 }
 
+table.mutable .add a,
+table.mutable .edit a,
+table.mutable .delete a {
+	text-decoration: none ;
+}
+
 table.mutable .add a {
 	padding: 2px;
 }
